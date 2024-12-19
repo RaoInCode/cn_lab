@@ -1,0 +1,196 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function to calculate GCD using Euclidean algorithm
+long long gcd(long long a, long long b) {
+    if (b == 0)
+        return a;
+    return gcd(b, a % b);
+}
+
+// Function to calculate modular multiplicative inverse
+long long mod_inverse(long long e, long long phi) {
+    long long old_r = e, r = phi;
+    long long old_s = 1, s = 0;
+    long long old_t = 0, t = 1;
+    long long temp;
+    
+    while (r != 0) {
+        long long quotient = old_r / r;
+        
+        temp = r;
+        r = old_r - quotient * r;
+        old_r = temp;
+        
+        temp = s;
+        s = old_s - quotient * s;
+        old_s = temp;
+        
+        temp = t;
+        t = old_t - quotient * t;
+        old_t = temp;
+    }
+    
+    if (old_s < 0)
+        old_s += phi;
+    
+    return old_s;
+}
+
+// Function for modular exponentiation
+long long mod_pow(long long base, long long exponent, long long modulus) {
+    long long result = 1;
+    base = base % modulus;
+    
+    while (exponent > 0) {
+        if (exponent % 2 == 1)
+            result = (result * base) % modulus;
+        
+        base = (base * base) % modulus;
+        exponent = exponent >> 1;
+    }
+    
+    return result;
+}
+
+// Function to check if a number is prime (simple implementation)
+int is_prime(long long n) {
+    if (n <= 1) return 0;
+    if (n <= 3) return 1;
+    
+    if (n % 2 == 0 || n % 3 == 0) return 0;
+    
+    for (long long i = 5; i * i <= n; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0)
+            return 0;
+    }
+    
+    return 1;
+}
+
+int main() {
+    // Example prime numbers (in real applications, use much larger primes)
+    long long p = 61;
+    long long q = 53;
+    
+    // Compute n and phi(n)
+    long long n = p * q;
+    long long phi = (p - 1) * (q - 1);
+    
+    // Choose public exponent e
+    long long e = 17; // Common choice for e
+    
+    // Compute private exponent d
+    long long d = mod_inverse(e, phi);
+    
+    printf("Generated RSA keys:\n");
+    printf("Public Key (e, n): (%lld, %lld)\n", e, n);
+    printf("Private Key (d, n): (%lld, %lld)\n", d, n);
+    
+    // Test the encryption and decryption
+    long long message;
+    printf("\nEnter a number to encrypt (smaller than %lld): ", n);
+    scanf("%lld", &message);
+    
+    // Encryption
+    long long encrypted = mod_pow(message, e, n);
+    printf("Encrypted message: %lld\n", encrypted);
+    
+    // Decryption
+    long long decrypted = mod_pow(encrypted, d, n);
+    printf("Decrypted message: %lld\n", decrypted);
+    
+    return 0;
+}
+
+---------------------------------------------------------------------------------------------------------------------------------------
+
+#include <stdio.h>
+#include <string.h>
+
+// This program implements a simple version of RSA encryption
+// It can encrypt and decrypt short text messages
+
+// Function to encrypt a single character
+int encrypt(int message, int e, int n) {
+    int encrypted = 1;
+    
+    // Repeat the multiplication 'e' times
+    for(int i = 0; i < e; i++) {
+        encrypted = (encrypted * message) % n;
+    }
+    
+    return encrypted;
+}
+
+// Function to decrypt a single character
+int decrypt(int encrypted_msg, int d, int n) {
+    int decrypted = 1;
+    
+    // Repeat the multiplication 'd' times
+    for(int i = 0; i < d; i++) {
+        decrypted = (decrypted * encrypted_msg) % n;
+    }
+    
+    return decrypted;
+}
+
+int main() {
+    // These are our two prime numbers
+    int p = 11;  // First prime number
+    int q = 13;  // Second prime number
+    
+    // Calculate n (modulus for public and private keys)
+    int n = p * q;
+    
+    // Calculate phi (Euler's totient function)
+    int phi = (p-1) * (q-1);
+    
+    // Choose e (public key exponent)
+    // e must be between 1 and phi, and coprime to phi
+    int e = 7;
+    
+    // Choose d (private key exponent)
+    // This is a simple way to find d, where (d * e) % phi = 1
+    int d = 0;
+    for(int i = 1; i < phi; i++) {
+        if((i * e) % phi == 1) {
+            d = i;
+            break;
+        }
+    }
+    
+    // Print the public and private keys
+    printf("Public Key (e,n): (%d,%d)\n", e, n);
+    printf("Private Key (d,n): (%d,%d)\n", d, n);
+    
+    // Get the message from user
+    char message[100];
+    printf("\nEnter a message to encrypt: ");
+    fgets(message, sizeof(message), stdin);
+    
+    // Remove the newline character that fgets keeps
+    message[strcspn(message, "\n")] = 0;
+    
+    // Arrays to store encrypted and decrypted message
+    int encrypted[100] = {0};
+    char decrypted[100] = {0};
+    int msg_length = strlen(message);
+    
+    // Encrypt each character
+    printf("\nEncrypted message (in numbers): ");
+    for(int i = 0; i < msg_length; i++) {
+        encrypted[i] = encrypt(message[i], e, n);
+        printf("%d ", encrypted[i]);
+    }
+    
+    // Decrypt each character
+    printf("\n\nDecrypted message: ");
+    for(int i = 0; i < msg_length; i++) {
+        decrypted[i] = decrypt(encrypted[i], d, n);
+        printf("%c", decrypted[i]);
+    }
+    printf("\n");
+    
+    return 0;
+}

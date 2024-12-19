@@ -1,0 +1,79 @@
+//TCP FileServer.java
+import java.io.*;
+import java.net.*;
+
+public class FileServer {
+public static void main(String[] args) {
+try (ServerSocket serverSocket = new ServerSocket(5000)) {
+System.out.println(&quot;Server is running and waiting for connection...&quot;);
+
+while (true) {
+Socket clientSocket = serverSocket.accept();
+System.out.println(&quot;Client connected&quot;);
+
+BufferedReader in = new BufferedReader(new
+InputStreamReader(clientSocket.getInputStream()));
+PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+String fileName = in.readLine(); // Read the file name from client
+System.out.println(&quot;Requested file: &quot; + fileName);
+
+File file = new File(fileName);
+if (file.exists() &amp;&amp; !file.isDirectory()) {
+BufferedReader fileReader = new BufferedReader(new FileReader(file));
+String line;
+while ((line = fileReader.readLine()) != null) {
+out.println(line); // Send each line to client
+}
+fileReader.close();
+out.println(&quot;EOF&quot;); // Indicate end of file transfer
+System.out.println(&quot;File sent successfully.&quot;);
+} else {
+
+out.println(&quot;File not found&quot;);
+System.out.println(&quot;Requested file not found.&quot;);
+}
+clientSocket.close(); // Close connection with the client
+}
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+}
+
+
+
+
+
+
+
+// FileClient.java
+import java.io.*;
+import java.net.*;
+
+public class FileClient {
+public static void main(String[] args) {
+String serverAddress = &quot;localhost&quot;; // Server address
+int port = 5000;
+
+try (Socket socket = new Socket(serverAddress, port);
+BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in))) {
+
+System.out.print(&quot;Enter the file name: &quot;);
+String fileName = consoleInput.readLine();
+out.println(fileName); // transmit file name to server
+
+String response;
+System.out.println(&quot;File content:&quot;);
+while (!(response = in.readLine()).equals(&quot;EOF&quot;)) {
+
+System.out.println(response); // Print each line received
+}
+
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+}

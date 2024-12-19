@@ -1,0 +1,47 @@
+public class CRCExample {
+
+// Method to perform binary division and get the remainder
+public static String divide(String dividend, String divisor) {
+int divisorLength = divisor.length();
+String remainder = dividend.substring(0, divisorLength);
+
+for (int i = divisorLength; i &lt;= dividend.length(); i++) {
+// If the leftmost bit is &#39;1&#39;, XOR with the divisor
+if (remainder.charAt(0) == &#39;1&#39;) {
+remainder = xor(remainder, divisor) + (i &lt; dividend.length() ? dividend.charAt(i) : &quot;&quot;);
+} else { // If the leftmost bit is &#39;0&#39;, XOR with an all-0 divisor
+remainder = xor(remainder, &quot;0&quot;.repeat(divisorLength)) + (i &lt; dividend.length() ?
+dividend.charAt(i) : &quot;&quot;);
+}
+// Remove the leftmost bit to keep remainder at divisorLength-1 bits
+remainder = remainder.substring(1);
+}
+return remainder;
+}
+
+// XOR operation between two binary strings
+private static String xor(String a, String b) {
+StringBuilder result = new StringBuilder();
+for (int i = 0; i &lt; a.length(); i++) {
+result.append(a.charAt(i) == b.charAt(i) ? &#39;0&#39; : &#39;1&#39;);
+}
+return result.toString();
+}
+
+public static void main(String[] args) {
+// Given data and divisor
+String data = &quot;1001&quot;;
+String divisor = &quot;1011&quot;;
+
+// Append zeros to the data (equivalent to the length of the divisor minus 1)
+String dividend = data + &quot;0&quot;.repeat(divisor.length() - 1);
+
+// Calculate CRC remainder
+String remainder = divide(dividend, divisor);
+System.out.println(&quot;CRC Remainder: &quot; + remainder);
+
+// Display the transmitted data with CRC appended
+String transmittedData = data + remainder;
+System.out.println(&quot;Transmitted Data with CRC: &quot; + transmittedData);
+}
+}
